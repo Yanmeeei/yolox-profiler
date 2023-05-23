@@ -106,6 +106,15 @@ if __name__ == "__main__":
                 exit(1)
                 r_image.show()
 
+
+
+                # t0 = time.time()
+                # r_image = yolo.detect_image(image, crop = crop, count=count)
+                # t1 = time.time()
+                # print(t1 - t0)
+                # exit(1)
+                # r_image.show()
+
     elif mode == "video":
         capture = cv2.VideoCapture(video_path)
         if video_save_path!="":

@@ -70,25 +70,8 @@ class YOLOXHead(nn.Module):
             # ---------------------------------------------------#
             #   利用1x1卷积进行通道整合
             # ---------------------------------------------------#
-            with profile(
-                    activities=
-                    [
-                        ProfilerActivity.CPU
-                    ] if not torch.cuda.is_available() else
-                    [
-                        ProfilerActivity.CPU,
-                        ProfilerActivity.CUDA
-                    ],
-                    profile_memory=True, record_shapes=True, with_flops=True
-            ) as prof:
-                with record_function("model_inference"):
-                    self.stems[k](x)
-            prof_report = str(prof.key_averages().table()).split("\n")
-            prof_wrapper.mr.get_mem("stems_" + str(k), prof_report, torch.cuda.is_available())
-            torch.cuda.synchronize()
             t_0 = time.time()
             x = self.stems[k](x)
-            torch.cuda.synchronize()
             t_1 = time.time()
             prof_wrapper.tt.get_time("stems_" + str(k), t_1 - t_0)
             prof_wrapper.scale.weight(tensor_src="stems_" + str(k),  data=x)
@@ -98,25 +81,8 @@ class YOLOXHead(nn.Module):
             prof_wrapper.scale.dependency_check(tensor_name="x",
                                                 src="stems_" + str(k),
                                                 dest="cls_convs_" + str(k))
-            with profile(
-                    activities=
-                    [
-                        ProfilerActivity.CPU
-                    ] if not torch.cuda.is_available() else
-                    [
-                        ProfilerActivity.CPU,
-                        ProfilerActivity.CUDA
-                    ],
-                    profile_memory=True, record_shapes=True, with_flops=True
-            ) as prof:
-                with record_function("model_inference"):
-                    self.cls_convs[k](x)
-            prof_report = str(prof.key_averages().table()).split("\n")
-            prof_wrapper.mr.get_mem("cls_convs_" + str(k), prof_report, torch.cuda.is_available())
-            torch.cuda.synchronize()
             t0 = time.time()
             cls_feat = self.cls_convs[k](x)
-            torch.cuda.synchronize()
             t1 = time.time()
             prof_wrapper.tt.get_time("cls_convs_" + str(k), t1 - t0)
             prof_wrapper.scale.weight(tensor_src="cls_convs_" + str(k), data=cls_feat)
@@ -129,25 +95,9 @@ class YOLOXHead(nn.Module):
             prof_wrapper.scale.dependency_check(tensor_name="x",
                                                 src="cls_convs_" + str(k),
                                                 dest="cls_preds_" + str(k))
-            with profile(
-                    activities=
-                    [
-                        ProfilerActivity.CPU
-                    ] if not torch.cuda.is_available() else
-                    [
-                        ProfilerActivity.CPU,
-                        ProfilerActivity.CUDA
-                    ],
-                    profile_memory=True, record_shapes=True, with_flops=True
-            ) as prof:
-                with record_function("model_inference"):
-                    self.cls_preds[k](cls_feat)
-            prof_report = str(prof.key_averages().table()).split("\n")
-            prof_wrapper.mr.get_mem("cls_preds_" + str(k), prof_report, torch.cuda.is_available())
-            torch.cuda.synchronize()
+
             t2 = time.time()
             cls_output = self.cls_preds[k](cls_feat)
-            torch.cuda.synchronize()
             t3 = time.time()
             prof_wrapper.tt.get_time("cls_preds_" + str(k), t3 - t2)
             prof_wrapper.scale.weight(tensor_src="cls_preds_" + str(k), data=cls_output)
@@ -158,25 +108,9 @@ class YOLOXHead(nn.Module):
             prof_wrapper.scale.dependency_check(tensor_name="x",
                                                 src="stems_" + str(k),
                                                 dest="reg_convs_" + str(k))
-            with profile(
-                    activities=
-                    [
-                        ProfilerActivity.CPU
-                    ] if not torch.cuda.is_available() else
-                    [
-                        ProfilerActivity.CPU,
-                        ProfilerActivity.CUDA
-                    ],
-                    profile_memory=True, record_shapes=True, with_flops=True
-            ) as prof:
-                with record_function("model_inference"):
-                    self.reg_convs[k](x)
-            prof_report = str(prof.key_averages().table()).split("\n")
-            prof_wrapper.mr.get_mem("reg_convs_" + str(k), prof_report, torch.cuda.is_available())
-            torch.cuda.synchronize()
+
             t4 = time.time()
             reg_feat = self.reg_convs[k](x)
-            torch.cuda.synchronize()
             t5 = time.time()
             prof_wrapper.tt.get_time("reg_convs_" + str(k), t5 - t4)
             prof_wrapper.scale.weight(tensor_src="reg_convs_" + str(k), data=reg_feat)
@@ -190,25 +124,9 @@ class YOLOXHead(nn.Module):
             prof_wrapper.scale.dependency_check(tensor_name="x",
                                                 src="reg_convs_" + str(k),
                                                 dest="reg_preds_" + str(k))
-            with profile(
-                    activities=
-                    [
-                        ProfilerActivity.CPU
-                    ] if not torch.cuda.is_available() else
-                    [
-                        ProfilerActivity.CPU,
-                        ProfilerActivity.CUDA
-                    ],
-                    profile_memory=True, record_shapes=True, with_flops=True
-            ) as prof:
-                with record_function("model_inference"):
-                    self.reg_preds[k](reg_feat)
-            prof_report = str(prof.key_averages().table()).split("\n")
-            prof_wrapper.mr.get_mem("reg_preds_" + str(k), prof_report, torch.cuda.is_available())
-            torch.cuda.synchronize()
+
             t6 = time.time()
             reg_output = self.reg_preds[k](reg_feat)
-            torch.cuda.synchronize()
             t7 = time.time()
             prof_wrapper.tt.get_time("reg_preds_" + str(k), t7 - t6)
             prof_wrapper.scale.weight(tensor_src="reg_preds_" + str(k), data=reg_output)
@@ -222,25 +140,9 @@ class YOLOXHead(nn.Module):
             prof_wrapper.scale.dependency_check(tensor_name="x",
                                                 src="reg_convs_" + str(k),
                                                 dest="obj_preds_" + str(k))
-            with profile(
-                    activities=
-                    [
-                        ProfilerActivity.CPU
-                    ] if not torch.cuda.is_available() else
-                    [
-                        ProfilerActivity.CPU,
-                        ProfilerActivity.CUDA
-                    ],
-                    profile_memory=True, record_shapes=True, with_flops=True
-            ) as prof:
-                with record_function("model_inference"):
-                    self.obj_preds[k](reg_feat)
-            prof_report = str(prof.key_averages().table()).split("\n")
-            prof_wrapper.mr.get_mem("obj_preds_" + str(k), prof_report, torch.cuda.is_available())
-            torch.cuda.synchronize()
+
             t8 = time.time()
             obj_output = self.obj_preds[k](reg_feat)
-            torch.cuda.synchronize()
             t9 = time.time()
             prof_wrapper.tt.get_time("obj_preds_" + str(k), t9 - t8)
             prof_wrapper.scale.weight(tensor_src="obj_preds_" + str(k), data=obj_output)
@@ -255,25 +157,9 @@ class YOLOXHead(nn.Module):
                                                 src="cls_preds_" + str(k),
                                                 dest="partial_out_" + str(k))
 
-            with profile(
-                    activities=
-                    [
-                        ProfilerActivity.CPU
-                    ] if not torch.cuda.is_available() else
-                    [
-                        ProfilerActivity.CPU,
-                        ProfilerActivity.CUDA
-                    ],
-                    profile_memory=True, record_shapes=True, with_flops=True
-            ) as prof:
-                with record_function("model_inference"):
-                    torch.cat([reg_output, obj_output, cls_output], 1)
-            prof_report = str(prof.key_averages().table()).split("\n")
-            prof_wrapper.mr.get_mem("partial_out_" + str(k), prof_report, torch.cuda.is_available())
-            torch.cuda.synchronize()
+
             t10 = time.time()
             output = torch.cat([reg_output, obj_output, cls_output], 1)
-            torch.cuda.synchronize()
             t11 = time.time()
             prof_wrapper.tt.get_time("partial_out_" + str(k), t11 - t10)
             prof_wrapper.scale.weight(tensor_src="partial_out_" + str(k), data=output)
@@ -281,7 +167,7 @@ class YOLOXHead(nn.Module):
 
             prof_wrapper.scale.dependency_check(tensor_name="x",
                                                 src="partial_out_" + str(k),
-                                                dest="output")
+                                                dest="output_decode")
             outputs.append(output)
         return outputs
 
@@ -372,25 +258,9 @@ class YOLOPAFPN(nn.Module):
         prof_wrapper.scale.dependency_check(tensor_name="x",
                                             src="dark5",
                                             dest="lateral_conv0")
-        with profile(
-                activities=
-                [
-                    ProfilerActivity.CPU
-                ] if not torch.cuda.is_available() else
-                [
-                    ProfilerActivity.CPU,
-                    ProfilerActivity.CUDA
-                ],
-                profile_memory=True, record_shapes=True, with_flops=True
-        ) as prof:
-            with record_function("model_inference"):
-                self.lateral_conv0(feat3)
-        prof_report = str(prof.key_averages().table()).split("\n")
-        prof_wrapper.mr.get_mem("lateral_conv0", prof_report, torch.cuda.is_available())
-        torch.cuda.synchronize()
+
         t0 = time.time()
         P5 = self.lateral_conv0(feat3)
-        torch.cuda.synchronize()
         t1 = time.time()
         prof_wrapper.tt.get_time("lateral_conv0", t1 - t0)
         prof_wrapper.scale.weight(tensor_src="lateral_conv0", data=P5)
@@ -400,25 +270,9 @@ class YOLOPAFPN(nn.Module):
         prof_wrapper.scale.dependency_check(tensor_name="x",
                                             src="lateral_conv0",
                                             dest="upsample_P5")
-        with profile(
-                activities=
-                [
-                    ProfilerActivity.CPU
-                ] if not torch.cuda.is_available() else
-                [
-                    ProfilerActivity.CPU,
-                    ProfilerActivity.CUDA
-                ],
-                profile_memory=True, record_shapes=True, with_flops=True
-        ) as prof:
-            with record_function("model_inference"):
-                self.upsample(P5)
-        prof_report = str(prof.key_averages().table()).split("\n")
-        prof_wrapper.mr.get_mem("upsample_P5", prof_report, torch.cuda.is_available())
-        torch.cuda.synchronize()
+
         t2 = time.time()
         P5_upsample = self.upsample(P5)
-        torch.cuda.synchronize()
         t3 = time.time()
         prof_wrapper.tt.get_time("upsample_P5", t3 - t2)
         prof_wrapper.scale.weight(tensor_src="upsample_P5", data=P5_upsample)
@@ -435,25 +289,9 @@ class YOLOPAFPN(nn.Module):
         # -------------------------------------------#
         #   40, 40, 1024 -> 40, 40, 512
         # -------------------------------------------#
-        with profile(
-                activities=
-                [
-                    ProfilerActivity.CPU
-                ] if not torch.cuda.is_available() else
-                [
-                    ProfilerActivity.CPU,
-                    ProfilerActivity.CUDA
-                ],
-                profile_memory=True, record_shapes=True, with_flops=True
-        ) as prof:
-            with record_function("model_inference"):
-                self.C3_p4(P5_upsample)
-        prof_report = str(prof.key_averages().table()).split("\n")
-        prof_wrapper.mr.get_mem("C3_p4", prof_report, torch.cuda.is_available())
-        torch.cuda.synchronize()
+
         t4 = time.time()
         P5_upsample = self.C3_p4(P5_upsample)
-        torch.cuda.synchronize()
         t5 = time.time()
         prof_wrapper.tt.get_time("C3_p4", t5 - t4)
         prof_wrapper.scale.weight(tensor_src="C3_p4", data=P5_upsample)
@@ -464,25 +302,9 @@ class YOLOPAFPN(nn.Module):
         prof_wrapper.scale.dependency_check(tensor_name="x",
                                             src="C3_p4",
                                             dest="reduce_conv1")
-        with profile(
-                activities=
-                [
-                    ProfilerActivity.CPU
-                ] if not torch.cuda.is_available() else
-                [
-                    ProfilerActivity.CPU,
-                    ProfilerActivity.CUDA
-                ],
-                profile_memory=True, record_shapes=True, with_flops=True
-        ) as prof:
-            with record_function("model_inference"):
-                self.reduce_conv1(P5_upsample)
-        prof_report = str(prof.key_averages().table()).split("\n")
-        prof_wrapper.mr.get_mem("reduce_conv1", prof_report, torch.cuda.is_available())
-        torch.cuda.synchronize()
+
         t6 = time.time()
         P4 = self.reduce_conv1(P5_upsample)
-        torch.cuda.synchronize()
         t7 = time.time()
         prof_wrapper.tt.get_time("reduce_conv1", t7 - t6)
         prof_wrapper.scale.weight(tensor_src="reduce_conv1", data=P4)
@@ -492,25 +314,9 @@ class YOLOPAFPN(nn.Module):
         prof_wrapper.scale.dependency_check(tensor_name="x",
                                             src="reduce_conv1",
                                             dest="upsample_P4")
-        with profile(
-                activities=
-                [
-                    ProfilerActivity.CPU
-                ] if not torch.cuda.is_available() else
-                [
-                    ProfilerActivity.CPU,
-                    ProfilerActivity.CUDA
-                ],
-                profile_memory=True, record_shapes=True, with_flops=True
-        ) as prof:
-            with record_function("model_inference"):
-                self.upsample(P4)
-        prof_report = str(prof.key_averages().table()).split("\n")
-        prof_wrapper.mr.get_mem("upsample_P4", prof_report, torch.cuda.is_available())
-        torch.cuda.synchronize()
+
         t8 = time.time()
         P4_upsample = self.upsample(P4)
-        torch.cuda.synchronize()
         t9 = time.time()
         prof_wrapper.tt.get_time("upsample_P4", t9 - t8)
         prof_wrapper.scale.weight(tensor_src="upsample_P4", data=P4_upsample)
@@ -527,25 +333,9 @@ class YOLOPAFPN(nn.Module):
         # -------------------------------------------#
         #   80, 80, 512 -> 80, 80, 256
         # -------------------------------------------#
-        with profile(
-                activities=
-                [
-                    ProfilerActivity.CPU
-                ] if not torch.cuda.is_available() else
-                [
-                    ProfilerActivity.CPU,
-                    ProfilerActivity.CUDA
-                ],
-                profile_memory=True, record_shapes=True, with_flops=True
-        ) as prof:
-            with record_function("model_inference"):
-                self.C3_p3(P4_upsample)
-        prof_report = str(prof.key_averages().table()).split("\n")
-        prof_wrapper.mr.get_mem("C3_p3", prof_report, torch.cuda.is_available())
-        torch.cuda.synchronize()
+
         t10 = time.time()
         P3_out = self.C3_p3(P4_upsample)
-        torch.cuda.synchronize()
         t11 = time.time()
         prof_wrapper.tt.get_time("C3_p3", t11 - t10)
         prof_wrapper.scale.weight(tensor_src="C3_p3", data=P3_out)
@@ -556,25 +346,9 @@ class YOLOPAFPN(nn.Module):
         prof_wrapper.scale.dependency_check(tensor_name="x",
                                             src="C3_p3",
                                             dest="bu_conv2")
-        with profile(
-                activities=
-                [
-                    ProfilerActivity.CPU
-                ] if not torch.cuda.is_available() else
-                [
-                    ProfilerActivity.CPU,
-                    ProfilerActivity.CUDA
-                ],
-                profile_memory=True, record_shapes=True, with_flops=True
-        ) as prof:
-            with record_function("model_inference"):
-                self.bu_conv2(P3_out)
-        prof_report = str(prof.key_averages().table()).split("\n")
-        prof_wrapper.mr.get_mem("bu_conv2", prof_report, torch.cuda.is_available())
-        torch.cuda.synchronize()
+
         t12 = time.time()
         P3_downsample = self.bu_conv2(P3_out)
-        torch.cuda.synchronize()
         t13 = time.time()
         prof_wrapper.tt.get_time("bu_conv2", t13 - t12)
         prof_wrapper.scale.weight(tensor_src="bu_conv2", data=P3_downsample)
@@ -591,25 +365,9 @@ class YOLOPAFPN(nn.Module):
         # -------------------------------------------#
         #   40, 40, 256 -> 40, 40, 512
         # -------------------------------------------#
-        with profile(
-                activities=
-                [
-                    ProfilerActivity.CPU
-                ] if not torch.cuda.is_available() else
-                [
-                    ProfilerActivity.CPU,
-                    ProfilerActivity.CUDA
-                ],
-                profile_memory=True, record_shapes=True, with_flops=True
-        ) as prof:
-            with record_function("model_inference"):
-                self.C3_n3(P3_downsample)
-        prof_report = str(prof.key_averages().table()).split("\n")
-        prof_wrapper.mr.get_mem("C3_n3", prof_report, torch.cuda.is_available())
-        torch.cuda.synchronize()
+
         t14 = time.time()
         P4_out = self.C3_n3(P3_downsample)
-        torch.cuda.synchronize()
         t15 = time.time()
         prof_wrapper.tt.get_time("C3_n3", t15 - t14)
         prof_wrapper.scale.weight(tensor_src="C3_n3", data=P4_out)
@@ -620,25 +378,9 @@ class YOLOPAFPN(nn.Module):
         prof_wrapper.scale.dependency_check(tensor_name="x",
                                             src="C3_n3",
                                             dest="bu_conv1")
-        with profile(
-                activities=
-                [
-                    ProfilerActivity.CPU
-                ] if not torch.cuda.is_available() else
-                [
-                    ProfilerActivity.CPU,
-                    ProfilerActivity.CUDA
-                ],
-                profile_memory=True, record_shapes=True, with_flops=True
-        ) as prof:
-            with record_function("model_inference"):
-                self.bu_conv1(P4_out)
-        prof_report = str(prof.key_averages().table()).split("\n")
-        prof_wrapper.mr.get_mem("bu_conv1", prof_report, torch.cuda.is_available())
-        torch.cuda.synchronize()
+
         t16 = time.time()
         P4_downsample = self.bu_conv1(P4_out)
-        torch.cuda.synchronize()
         t17 = time.time()
         prof_wrapper.tt.get_time("bu_conv1", t17 - t16)
         prof_wrapper.scale.weight(tensor_src="bu_conv1", data=P4_downsample)
@@ -655,25 +397,9 @@ class YOLOPAFPN(nn.Module):
         # -------------------------------------------#
         #   20, 20, 1024 -> 20, 20, 1024
         # -------------------------------------------#
-        with profile(
-                activities=
-                [
-                    ProfilerActivity.CPU
-                ] if not torch.cuda.is_available() else
-                [
-                    ProfilerActivity.CPU,
-                    ProfilerActivity.CUDA
-                ],
-                profile_memory=True, record_shapes=True, with_flops=True
-        ) as prof:
-            with record_function("model_inference"):
-                self.C3_n4(P4_downsample)
-        prof_report = str(prof.key_averages().table()).split("\n")
-        prof_wrapper.mr.get_mem("C3_n4", prof_report, torch.cuda.is_available())
-        torch.cuda.synchronize()
+
         t18 = time.time()
         P5_out = self.C3_n4(P4_downsample)
-        torch.cuda.synchronize()
         t19 = time.time()
         prof_wrapper.tt.get_time("C3_n4", t19 - t18)
         prof_wrapper.scale.weight(tensor_src="C3_n4", data=P5_out)
@@ -695,4 +421,5 @@ class YoloBody(nn.Module):
     def forward(self, x, prof_wrapper):
         fpn_outs = self.backbone.forward(x, prof_wrapper)
         outputs = self.head.forward(fpn_outs, prof_wrapper)
+        prof_wrapper.tt.report()
         return outputs

@@ -32,11 +32,22 @@ class Focus(nn.Module):
         self.conv = BaseConv(in_channels * 4, out_channels, ksize, stride, act=act)
 
     def forward(self, x):
+        t0 = time.time()
+
         patch_top_left = x[..., ::2, ::2]
         patch_bot_left = x[..., 1::2, ::2]
         patch_top_right = x[..., ::2, 1::2]
         patch_bot_right = x[..., 1::2, 1::2]
         x = torch.cat((patch_top_left, patch_bot_left, patch_top_right, patch_bot_right,), dim=1, )
+        t1 = time.time()
+
+        self.conv(x)
+        t2 = time.time()
+        self.conv(x)
+        t3 = time.time()
+
+        print(f"Stem time: {(t1 - t0 + t3 - t2) * 1000} ms")
+
         return self.conv(x)
 
 
@@ -236,49 +247,17 @@ class CSPDarknet(nn.Module):
                                             dest="dark5")
         outputs = {}
 
-        with profile(
-                activities=
-                [
-                    ProfilerActivity.CPU
-                ] if not torch.cuda.is_available() else
-                [
-                    ProfilerActivity.CPU,
-                    ProfilerActivity.CUDA
-                ],
-                profile_memory=True, record_shapes=True, with_flops=True
-        ) as prof:
-            with record_function("model_inference"):
-                temp = self.stem(x)
-        prof_report = str(prof.key_averages().table()).split("\n")
-        prof_wrapper.mr.get_mem("stem", prof_report, torch.cuda.is_available())
-        torch.cuda.synchronize()
+
         t0 = time.time()
         x = self.stem(x)
-        torch.cuda.synchronize()
         t1 = time.time()
         prof_wrapper.tt.get_time("stem", t1-t0)
         prof_wrapper.scale.weight(tensor_src="stem", data=x)
         outputs["stem"] = x
 
-        with profile(
-                activities=
-                [
-                    ProfilerActivity.CPU
-                ] if not torch.cuda.is_available() else
-                [
-                    ProfilerActivity.CPU,
-                    ProfilerActivity.CUDA
-                ],
-                profile_memory=True, record_shapes=True, with_flops=True
-        ) as prof:
-            with record_function("model_inference"):
-                temp = self.dark2(x)
-        prof_report = str(prof.key_averages().table()).split("\n")
-        prof_wrapper.mr.get_mem("dark2", prof_report, torch.cuda.is_available())
-        torch.cuda.synchronize()
+
         t2 = time.time()
         x = self.dark2(x)
-        torch.cuda.synchronize()
         t3 = time.time()
         prof_wrapper.tt.get_time("dark2", t3-t2)
         prof_wrapper.scale.weight(tensor_src="dark2", data=x)
@@ -287,25 +266,9 @@ class CSPDarknet(nn.Module):
         # -----------------------------------------------#
         #   dark3的输出为80, 80, 256，是一个有效特征层
         # -----------------------------------------------#
-        with profile(
-                activities=
-                [
-                    ProfilerActivity.CPU
-                ] if not torch.cuda.is_available() else
-                [
-                    ProfilerActivity.CPU,
-                    ProfilerActivity.CUDA
-                ],
-                profile_memory=True, record_shapes=True, with_flops=True
-        ) as prof:
-            with record_function("model_inference"):
-                temp = self.dark3(x)
-        prof_report = str(prof.key_averages().table()).split("\n")
-        prof_wrapper.mr.get_mem("dark3", prof_report, torch.cuda.is_available())
-        torch.cuda.synchronize()
+
         t4 = time.time()
         x = self.dark3(x)
-        torch.cuda.synchronize()
         t5 = time.time()
         prof_wrapper.tt.get_time("dark3", t5-t4)
         prof_wrapper.scale.weight(tensor_src="dark3", data=x)
@@ -313,25 +276,9 @@ class CSPDarknet(nn.Module):
         # -----------------------------------------------#
         #   dark4的输出为40, 40, 512，是一个有效特征层
         # -----------------------------------------------#
-        with profile(
-                activities=
-                [
-                    ProfilerActivity.CPU
-                ] if not torch.cuda.is_available() else
-                [
-                    ProfilerActivity.CPU,
-                    ProfilerActivity.CUDA
-                ],
-                profile_memory=True, record_shapes=True, with_flops=True
-        ) as prof:
-            with record_function("model_inference"):
-                temp = self.dark4(x)
-        prof_report = str(prof.key_averages().table()).split("\n")
-        prof_wrapper.mr.get_mem("dark4", prof_report, torch.cuda.is_available())
-        torch.cuda.synchronize()
+
         t6 = time.time()
         x = self.dark4(x)
-        torch.cuda.synchronize()
         t7 = time.time()
         prof_wrapper.tt.get_time("dark4", t7-t6)
         prof_wrapper.scale.weight(tensor_src="dark4", data=x)
@@ -339,25 +286,9 @@ class CSPDarknet(nn.Module):
         # -----------------------------------------------#
         #   dark5的输出为20, 20, 1024，是一个有效特征层
         # -----------------------------------------------#
-        with profile(
-                activities=
-                [
-                    ProfilerActivity.CPU
-                ] if not torch.cuda.is_available() else
-                [
-                    ProfilerActivity.CPU,
-                    ProfilerActivity.CUDA
-                ],
-                profile_memory=True, record_shapes=True, with_flops=True
-        ) as prof:
-            with record_function("model_inference"):
-                temp = self.dark5(x)
-        prof_report = str(prof.key_averages().table()).split("\n")
-        prof_wrapper.mr.get_mem("dark5", prof_report, torch.cuda.is_available())
-        torch.cuda.synchronize()
+
         t8 = time.time()
         x = self.dark5(x)
-        torch.cuda.synchronize()
         t9 = time.time()
         prof_wrapper.tt.get_time("dark5", t9-t8)
         prof_wrapper.scale.weight(tensor_src="dark5", data=x)
