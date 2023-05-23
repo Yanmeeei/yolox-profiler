@@ -12,33 +12,32 @@ class ProfilerWrapper(object):
 
     def report(self, sample=False):
 
-        file = open("table_1.csv", "w")
+        file = open("prof.csv", "w")
         writer = csv.writer(file)
         writer.writerow(["layer_name", "time", "output size", "mem consumption", "flops"])
-        writer.writerow(["user_input", "nan", "%.4f" % (self.scale.scaleRec['user_input'] / (1024 ** 2)), "nan", "nan"])
-        self.scale.scaleRec.pop('user_input')
+        writer.writerow(["input", "nan", "%.4f" % (self.scale.scaleRec['input'] / (1024 ** 2)), "nan", "nan"])
+        self.scale.scaleRec.pop('input')
         if self.mr.mem_cuda:
             for key, value in self.tt.time_records.items():
                 writer.writerow([key,
-                                 "%.4f" % (min(self.tt.time_records[key]) * 1000),
-                                 "%.4f" % (self.scale.scaleRec[key] / (1024 ** 2)),
+                                 "%.4f" % (min(self.tt.time_records[key])),  # s
+                                 "%.4f" % (self.scale.scaleRec[key] / (1024 ** 2)),  # MB
                                  "%.4f" % (sum(self.mr.mem_cuda[key]) / len(self.mr.mem_cuda[key])),
-                                 self.scale.flopRec[key]])
+                                 0])
         else:
             for key, value in self.tt.time_records.items():
                 writer.writerow([key,
-                                 "%.4f" % (min(self.tt.time_records[key]) * 1000),
-                                 "%.4f" % (self.scale.scaleRec[key] / (1024 ** 2)),
+                                 "%.4f" % (min(self.tt.time_records[key])),  # s
+                                 "%.4f" % (self.scale.scaleRec[key] / (1024 ** 2)),  # MB
                                  "%.4f" % (sum(self.mr.mem_cpu[key]) / len(self.mr.mem_cpu[key])),
-                                 self.scale.flopRec[key]])
+                                 0])
         file.close()
-        file = open("table_2.csv", "w")
+        file = open("dep.csv", "w")
         writer = csv.writer(file)
-        writer.writerow(["tensor name", "src", "dst"])
+        writer.writerow(["src", "dst"])
         for key, value in self.scale.dependencyRec.items():
             for dest in value.dest_list:
-                writer.writerow([key,
-                                 value.src,
+                writer.writerow([value.src,
                                  dest])
         file.close()
 

@@ -104,7 +104,7 @@ if __name__ == "__main__":
                 delta = starter.elapsed_time(ender)/1000
                 print("\t\t::", delta, sep='')
                 exit(1)
-                r_image.show()
+                # r_image.show()
 
 
 

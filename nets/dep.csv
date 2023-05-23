@@ -28,7 +28,7 @@ reg_convs_0,obj_preds_0
 reg_preds_0,partial_out_0
 obj_preds_0,partial_out_0
 cls_preds_0,partial_out_0
-partial_out_0,output_decode
+partial_out_0,output
 stems_1,cls_convs_1
 stems_1,reg_convs_1
 cls_convs_1,cls_preds_1
@@ -37,7 +37,7 @@ reg_convs_1,obj_preds_1
 reg_preds_1,partial_out_1
 obj_preds_1,partial_out_1
 cls_preds_1,partial_out_1
-partial_out_1,output_decode
+partial_out_1,output
 C3_n4,stems_2
 stems_2,cls_convs_2
 stems_2,reg_convs_2
@@ -47,5 +47,5 @@ reg_convs_2,obj_preds_2
 reg_preds_2,partial_out_2
 obj_preds_2,partial_out_2
 cls_preds_2,partial_out_2
-partial_out_2,output_decode
+partial_out_2,output
 output_decode,output
